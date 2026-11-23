@@ -1,6 +1,29 @@
-@BancoAula.Api_HostAddress = http://localhost:5255
+@host= http://localhost:5255/api/contas
 
-GET {{BancoAula.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
+GET {{host}}
 ###
+GET {{host}}?tipo-=Corrente
+###
+POST {{host}}
+Content-Type: application/json
+{
+  "ClienteId": 2,
+  "numero":2001,
+  "Saldo": 300,
+  
+}
+###
+PUT {{host}}/1
+Content-Type: application/json
+{
+  "Tipo": "Poupanca",
+  "Saldo": 300,
+  "ativa": true
+}
+###
+DELETE {{host}}/1
+
+
+
+
+
