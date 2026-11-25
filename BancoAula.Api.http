@@ -1,29 +1,24 @@
-@host= http://localhost:5255/api/contas
-
+@host = http://localhost:5255/api/contas
+ 
 GET {{host}}
 ###
-GET {{host}}?tipo-=Corrente
+GET {{host}}/3
 ###
 POST {{host}}
 Content-Type: application/json
-{
-  "ClienteId": 2,
-  "numero":2001,
-  "Saldo": 300,
-  
-}
-###
-PUT {{host}}/1
-Content-Type: application/json
-{
-  "Tipo": "Poupanca",
-  "Saldo": 300,
-  "ativa": true
-}
+ 
+{ "clienteId": 2, "numero": 2001, "saldo": 300, "tipo": "Corrente", "ativa": true, "AgenciaId": 1 }
+# ###
+# POST {{host}}/50/depositar
+# Content-Type: application/json
+ 
+# { "valor": -1500}
+# ###
+# PUT {{host}}/2
+# Content-Type: application/json
+ 
+# { "tipo": "Poupanca", "saldo": 6000, "ativa": true }
 ###
 DELETE {{host}}/1
-
-
-
 
 
