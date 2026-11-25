@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BancoAula.Api.Controllers;
 
@@ -6,85 +7,77 @@ namespace BancoAula.Api.Controllers;
 [Route("api/[controller]")]
 public class ContasController : ControllerBase
 {
-    private static readonly List<Conta> _contas = new(){
-        new Conta { Id = 1, ClienteId = 1, numero = 10, Tipo = "Corrente", Saldo = 1500.00m, Ativa = true },
-        new Conta { Id = 2, ClienteId = 2, numero = 20, Tipo = "Poupança", Saldo = 2500000.00m, Ativa = true },
-    };
-    public record ValorDto(decimal valor);
+    private readonly BancoContext _db;
+    public ContasController(BancoContext db) =>_db = db;
 
+    public record ValorDto(decimal Valor);
     private static int _proximoId = 3;
-    
 
     [HttpGet]
-    public ActionResult<List<Conta>> GetTodas([FromQuery] string? tipo)
-    {
-        if (!string.IsNullOrEmpty(tipo))
-        {
-            var filtradas = _contas.Where(c => c.Tipo == tipo).ToList();
-            return Ok(filtradas);
+    public ActionResult<List<Conta>> Get() => Ok( _db.Contas.ToList());
+    
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Conta>> GetPorId(int id){
+        var conta = await _db.Contas.FindAsync(id);
+        if(conta == null){
+            return NotFound();
         }
-     return Ok(_contas);
+        return Ok(conta);
     }
 
-    [HttpGet("{id:int}")] 
-        public ActionResult<Conta> GetPorId(int id)
-        {
-            var conta = _contas.FirstOrDefault(c => c.Id == id);
-            if (conta == null)
-            {
-                return NotFound();
-            }
-            return Ok(conta);
-        }
+    [HttpPost]
+    public async Task<ActionResult<Conta>> Criar(Conta nova){
+        _db.Contas.Add(nova);
+        await _db.SaveChangesAsync();
 
-        [HttpPost]
-        public ActionResult<Conta> Criar([FromBody] Conta nova)
-        {
-            nova.Id = _proximoId++;
-            _contas.Add(nova);
-            return CreatedAtAction(nameof(GetPorId), new { id = nova.Id }, nova);
-        }
-        [HttpPost("{id:int}/depositar")]
-        public ActionResult<Conta> Depositar(int id,  ValorDto valor)
-        {
-            var conta = _contas.FirstOrDefault(c => c.Id == id);
-            if (conta == null)
-            {
-                return NotFound();
-            }
-            if (valor.valor <= 0)
-            {
-                return BadRequest("O valor do depósito deve ser maior que zero.");
-            }
-            conta.Saldo += valor.valor;
-            return Ok(conta);
-        }
+        return CreatedAtAction(nameof(GetPorId), new {id = nova.Id}, nova);
+    }
 
-        [HttpPut("{id:int}")]
-        public ActionResult Atualizar(int id, Conta dados)
-        {
-            var conta = _contas.FirstOrDefault(c => c.Id == id);
-            if (conta == null)
-            {
-                return NotFound();
-            }
-            conta.Tipo = dados.Tipo;
-            conta.Saldo = dados.Saldo;
-            conta.Ativa = dados.Ativa;
-         
-            return NoContent();
-        }
+    // [HttpPost("{id:int}/depositar")]
+    // public ActionResult<Conta> Depositar(int id, ValorDto valor)
+    // {
+    //     var conta = _contas.FirstOrDefault(c => c.Id == id);
+    //     if(conta == null){
+    //         return NotFound();
+    //     } 
+    //     if(valor.Valor <=0)
+    //         return BadRequest("O valor do depósito deve ser maior que zero.");
+    //     conta.Saldo += valor.Valor;
+    //     return Ok(conta);
+    // }
 
-        [HttpDelete("{id:int}")]
-        public ActionResult Remover(int id)
-        {
-            var conta = _contas.FirstOrDefault(c => c.Id == id);
-            if (conta == null)
-            {
-                return NotFound();
-            }
-            _contas.Remove(conta);
-            return NoContent();
+    // [HttpPut("{id:int}")]
+    // public IActionResult Atualizar(int id, Conta dados){
+    //     var conta = _contas.FirstOrDefault(c => c.Id == id);
+    //     if(conta == null){
+    //         return NotFound();
+    //     }
+    //     conta.Tipo = dados.Tipo;
+    //     conta.Saldo = dados.Saldo;
+    //     conta.Ativa = dados.Ativa;
+    //     return NoContent();
+    // }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Remover(int id){
+        var conta = await _db.Contas.FindAsync(id);
+        if(conta == null){
+            return NotFound();
         }
-}  
-  
+        _db.Contas.Remove(conta);
+        await _db.SaveChangesAsync();
+        return NoContent();   
+    }
+    [HttpGet("clientes/{clienteId:int}/emprestimos")]
+    public async Task<ActionResult<List<Emprestimo>>> GetEmprestimosPorCliente(int clienteId)
+    {
+        var cliente = await _db.Clientes.FindAsync(clienteId);
+        if (cliente == null)
+        {
+            return NotFound();
+        }
+        var emprestimos = await _db.Emprestimos.Where(e => e.ClienteId == cliente.Id).ToListAsync();
+        return Ok(emprestimos);
+    } 
+}
