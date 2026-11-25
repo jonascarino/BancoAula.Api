@@ -153,10 +153,21 @@ namespace BancoAula.Api.Migrations
                     b.Property<int>("ClienteId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DataContrato")
+                    b.Property<DateTime>("DataSolicitacao")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Parcelas")
+                    b.Property<DateTime>("DataVencimento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Prazo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TaxaJuros")
+                        .HasPrecision(12, 2)
                         .HasColumnType("int");
 
                     b.Property<decimal>("Valor")

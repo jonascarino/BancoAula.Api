@@ -1,4 +1,4 @@
-@host = http://localhost:5158/api/contas
+@host = http://localhost:5255/api/contas
  
 GET {{host}}
 ###
